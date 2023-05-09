@@ -8,7 +8,7 @@ pygame.display.set_caption('My test game')
 icon = pygame.image.load('images/game_icon.png').convert_alpha()
 pygame.display.set_icon(icon)
 
-#Player
+# Player
 bg = pygame.image.load('images/bg_image.png').convert_alpha()
 walk_left = [
     pygame.image.load('images/player_left/player_left1.png').convert_alpha(),
@@ -29,24 +29,29 @@ player_anim_count = 0
 bg_x = 0
 
 
-#Enemy
+# Enemy
 ghost = pygame.image.load('images/ghost1.png').convert_alpha()
 ghost_list_in_game = []
 ghost_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(ghost_timer, 2500)
 
+# Weapon
+bullet = pygame.image.load('images/bullet.png').convert_alpha()
+bullets = []
+bullets_left = 5
+
 
 is_jump = False
 jump_count = 8
 
-#Sound
+# Sound
 bg_sound = pygame.mixer.Sound('sounds/bg_music.mp3')
 bg_sound.play(loops=60)
 
 
 label = pygame.font.Font('fonts/Roboto-Regular.ttf', 40)
-lose_label = label.render('Game over!', False, ('Red'))
-restart_label = label.render('Restart!', False, ('Green'))
+lose_label = label.render('Game over!', False, 'Red')
+restart_label = label.render('Restart!', False, 'Green')
 restart_label_rect = restart_label.get_rect(topleft=(180, 200))
 
 
@@ -99,7 +104,6 @@ while running:
                 is_jump = False
                 jump_count = 8
 
-
         if player_anim_count == 3:
             player_anim_count = 0
         else:
@@ -108,6 +112,20 @@ while running:
         bg_x -= 2
         if bg_x == -618:
             bg_x = 0
+
+        if bullets:
+            for (i, elem) in enumerate(bullets):
+                screen.blit(bullet, (elem.x, elem.y))
+                elem.x += 4
+
+                if elem.x > 620:
+                    bullets.pop(i)
+
+                if ghost_list_in_game:
+                    for (index, ghost_el) in enumerate(ghost_list_in_game):
+                        if elem.colliderect(ghost_el):
+                            ghost_list_in_game.pop(index)
+                            bullets.pop(i)
 
     else:
         screen.fill(('Black'))
@@ -120,8 +138,8 @@ while running:
             gameplay = True
             player_x = 150
             ghost_list_in_game.clear()
-
-
+            bullets.clear()
+            bullets_left = 5
 
     pygame.display.update()
 
@@ -131,7 +149,10 @@ while running:
             pygame.quit()
         if event.type == ghost_timer:
             ghost_list_in_game.append(ghost.get_rect(topleft=(620, 250)))
+        if gameplay and event.type == pygame.KEYUP \
+                and event.key == pygame.K_SPACE \
+                and bullets_left > 0:
+            bullets.append(bullet.get_rect(topleft=(player_x + 30, player_y + 10)))
+            bullets_left -= 1
 
     clock.tick(15)
-
-
